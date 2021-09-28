@@ -1,0 +1,9 @@
+<div>
+    <h3>Authentification OK 👌 thanks {{athlete.firstname}} to share yours data 🥰</h3>
+    <a href="http://localhost:8080/">OK next</a>
+    {{#each athlete}}
+    <p>{{@key}} : {{this}}</p>
+    {{/each}}
+    <p>code: {{code}}</p>
+    <p>scope: {{scope}}</p>
+</div>
