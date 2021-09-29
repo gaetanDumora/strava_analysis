@@ -46,13 +46,30 @@ export async function getAccessToken(code) {
     })
 }
 
-export async function isValidToken(accessToken){
+export async function getUserValidToken(userID) {
     try {
-        const [{expires_at, refresh_token, access_token}] = await mongo.getUsersInfo({"access_token": accessToken})
+        const [{ expires_at, refresh_token, access_token }] = await mongo.getUsersInfo({ "athlete.id": userID })
+        const now = new Date()
         const expireDate = new Date(expires_at * 1_000)
-        return console.log(expires_at, expireDate)
+        if (expireDate <= now) {
+            console.log('invalid token')
+            const req = await axios({
+                method: 'POST',
+                url: 'https://www.strava.com/oauth/token',
+                data: {
+                    client_id,
+                    client_secret,
+                    grant_type: 'refresh_token',
+                    refresh_token: refresh_token
+                }
+            })
+            await mongo.upsert('users_info', { "athlete.id": userID }, req.data)
+            return req.data.access_token
+        } else {
+            console.log('valid token')
+            return access_token
+        }
     } catch (error) {
         console.error(error)
     }
 }
-await isValidToken('ee8b80911d8df5966b66ee69668b10d3d4e8133c')

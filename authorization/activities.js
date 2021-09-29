@@ -1,26 +1,21 @@
 import axios from 'axios'
 import { mongo } from '../data_base/Mongo.js'
-import { isValidToken } from './auth.js'
+import { getUserValidToken } from './auth.js'
 
-const pathTo = {
-    athlete: 'https://www.strava.com/api/v3/athlete',
-    activies: 'https://www.strava.com/api/v3/athlete/activities',
-    auth: 'https://www.strava.com/api/v3/oauth/token'
-}
+const VERSION = 'v3'
+const PATH = `https://www.strava.com/api/${VERSION}`
 
-export async function getActivities(userID) {
+export async function getUser(userID) {
     try {
-        const [{access_token}] = await mongo.getUsersInfo({"athlete.id": userID})
-
+        const userAccessToken = await getUserValidToken(userID)
         const req = await axios({
             method: 'GET',
-            url: pathTo.athlete,
-            headers: {Authorization: `Bearer ${access_token}`}
+            url: PATH + '/athlete/activities',
+            headers: { Authorization: `Bearer ${userAccessToken}` }
         })
-        console.log(req.statusText)
+        console.log(req.data)
     } catch (error) {
         console.error(error)
     }
 }
-
-getActivities(18933919)
+getUser(18933919)

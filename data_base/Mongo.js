@@ -60,7 +60,7 @@ class MongoDatabase {
                 await this.connect()
             }
             const collection = this.db.collection(collectionName)
-            const { acknowledged, upsertedId } = await collection.updateOne(filter, doc, {
+            const { acknowledged, upsertedId } = await collection.updateOne(filter, { $set: doc }, {
                 upsert: true
             })
             console.log('insert ok: ', acknowledged.valueOf(), 'at: ', upsertedId.getTimestamp())
@@ -79,7 +79,7 @@ class MongoDatabase {
             const usersInfo = await this.db.collection('users_info')
                 .find(filter)
                 .toArray()
-                return usersInfo
+            return usersInfo
         } catch (error) {
             console.error(error)
         } finally {
