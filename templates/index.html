@@ -1,8 +1,8 @@
-<div style="background-color: #f0f0f0; padding: 2px;">
+<div style="background-color: #ebf1f0;">
     <h2>🍀 Your fortune 🍀</h2>
     <p>{{random_string}}</p>
     <h2>🏃🏻‍♂️ It is about sport & performance 🏃🏻‍♂️</h2>
-    <a href="http://localhost:8080/about"><b>About the project</b></a>
+    <a href="/public/about.html"><b>About the project</b></a>
     <h2>👇 Participate to the project by sharing your data 👇</h2>
     <a
         href="https://www.strava.com/oauth/authorize?client_id=38506&response_type=code&redirect_uri=http://localhost:8080/confirm&approval_prompt=force&scope=activity:read"><b>Redirect
@@ -11,7 +11,7 @@
 <div>
     <h2>Thanks everyone for sharing 🥰: </h2>
     {{#each users_info}}
-        <div style="background-color: #d5e1df; padding: 2px; border: 1px solid #32a1ce; border-width: 1px 0 1px 0; border-radius: 10px;">
+        <div style="background-color: #ebf1f0; border-radius: 10px; margin-bottom: 5px;">
             <img src={{profile_medium}} alt="avatar" style="width: 60px; height: 60px; border-radius: 50%; vertical-align: middle;">  <b>{{firstname}}</b> from <b>{{city}}</b> 
         </div>
     {{/each}}

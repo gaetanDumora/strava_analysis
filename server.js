@@ -54,7 +54,11 @@ async function init() {
         path: '/',
         handler: showAthletes
     })
-
+    s.route({
+        method: 'GET',
+        path: '/about',
+        handler: function(){}
+    })
     await s.start()
     console.log('server started: ', s.info.uri, ' started at: ', new Date(s.info.started))
 }
