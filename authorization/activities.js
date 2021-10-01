@@ -5,12 +5,12 @@ import { getUserValidToken } from './auth.js'
 const VERSION = 'v3'
 const PATH = `https://www.strava.com/api/${VERSION}`
 
-export async function getUser(userID) {
+export async function getUserActId(userID) {
     try {
         const userAccessToken = await getUserValidToken(userID)
         const req = await axios({
             method: 'GET',
-            url: PATH + '/athlete/activities',
+            url: PATH + '/athlete/activities?after=1577833200&page=1&per_page=1',
             headers: { Authorization: `Bearer ${userAccessToken}` }
         })
         console.log(req.data)
@@ -18,4 +18,4 @@ export async function getUser(userID) {
         console.error(error)
     }
 }
-getUser(18933919)
+getUserActId(18933919)
