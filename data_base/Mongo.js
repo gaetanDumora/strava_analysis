@@ -1,7 +1,10 @@
 import { MongoClient } from 'mongodb'
 import { readFile } from 'fs/promises'
+import { dirname } from 'path'
+import { fileURLToPath } from 'url'
 
-const { mongo_user, mongo_password } = JSON.parse(await readFile('/Users/gaetandumora/Desktop/strava_data_analyse/environment.json'))
+const DIR = dirname(fileURLToPath(import.meta.url))
+const { mongo_user, mongo_password } = JSON.parse(await readFile(DIR + '/db-connexion.json'))
 
 class MongoDatabase {
     constructor() {
