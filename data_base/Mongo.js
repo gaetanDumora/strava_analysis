@@ -66,7 +66,7 @@ class MongoDatabase {
             const { acknowledged, upsertedId } = await collection.updateOne(filter, { $set: doc }, {
                 upsert: true
             })
-            console.log('insert ok: ', acknowledged.valueOf(), 'at: ', upsertedId.getTimestamp())
+            console.log('insert ok: ', acknowledged, 'ID: ', upsertedId)
         } catch (error) {
             console.error(error)
         } finally {

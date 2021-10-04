@@ -33,7 +33,7 @@ export async function getUserValidToken(userID) {
         const now = new Date()
         const expireDate = new Date(expires_at * 1_000)
         if (expireDate <= now) {
-            console.log('invalid token')
+            console.log('token expire')
             const req = await axios({
                 method: 'POST',
                 url: 'https://www.strava.com/oauth/token',
