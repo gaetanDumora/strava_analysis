@@ -7,7 +7,7 @@ import { fileURLToPath } from 'url'
 import { showAthletes, getAuth, userInfo } from './routes/index-router.js'
 
 const DIR = dirname(fileURLToPath(import.meta.url))
-const HOST = process.env.NODE_ENV == "production" ? " https://intense-beyond-23063.herokuapp.com/" : "localhost"
+const HOST = process.env.NODE_ENV == "production" ? "intense-beyond-23063.herokuapp.com" : "localhost"
 
 async function init() {
 
