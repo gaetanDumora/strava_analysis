@@ -8,10 +8,9 @@ import { showAthletes, getAuth, userInfo } from './routes/index-router.js'
 
 const DIR = dirname(fileURLToPath(import.meta.url))
 const HOST = process.env.NODE_ENV == "production" ? "intense-beyond-23063.herokuapp.com" : "localhost"
-console.log(process.env)
+
 async function init() {
     const s = server({
-        host: HOST,
         port: process.env.PORT || 8080,
         routes: {
             files: {
