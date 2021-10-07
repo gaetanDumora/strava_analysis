@@ -17,3 +17,9 @@ export async function getAuth(r, h) {
     await mongo.upsert('users_info', { "athlete.id": userToken.athlete.id }, userToken)
     return h.view('./code.html', { code, scope, athlete: userToken.athlete })
 }
+
+export async function userInfo(r, h) {
+    const { user_id } = r.query
+    const [{ athlete }] = await mongo.getUsersInfo({ "athlete.id": Number(user_id) })
+    return h.view('./user.html', { info: athlete })
+}

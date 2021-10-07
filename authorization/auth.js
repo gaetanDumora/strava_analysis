@@ -7,6 +7,7 @@ import { fileURLToPath } from 'url'
 const DIR = dirname(fileURLToPath(import.meta.url))
 const { client_id, client_secret } = JSON.parse(await readFile(DIR + '/credentials/atchoum-app-secret.json'))
 
+// the code is returned in the url after the user has given his consent
 export async function getAccessToken(code) {
     return new Promise(async (resolve, reject) => {
         try {
@@ -20,6 +21,7 @@ export async function getAccessToken(code) {
                     grant_type: 'authorization_code'
                 }
             })
+            //contains data in users_info collection
             return resolve(req.data)
         } catch (error) {
             return reject(error)
@@ -30,10 +32,12 @@ export async function getAccessToken(code) {
 export async function getUserValidToken(userID) {
     try {
         const [{ expires_at, refresh_token, access_token }] = await mongo.getUsersInfo({ "athlete.id": userID })
+        // Dates for validity testing
         const now = new Date()
         const expireDate = new Date(expires_at * 1_000)
         if (expireDate <= now) {
             console.log('token expire')
+            // Asking for new token
             const req = await axios({
                 method: 'POST',
                 url: 'https://www.strava.com/oauth/token',

@@ -4,7 +4,7 @@ import vision from '@hapi/vision' // templating
 import hbs from 'handlebars'
 import { dirname } from 'path'
 import { fileURLToPath } from 'url'
-import { showAthletes, getAuth } from './routes/index-router.js'
+import { showAthletes, getAuth, userInfo } from './routes/index-router.js'
 
 const DIR = dirname(fileURLToPath(import.meta.url))
 
@@ -56,8 +56,8 @@ async function init() {
     })
     s.route({
         method: 'GET',
-        path: '/about',
-        handler: function(){}
+        path: '/athlete',
+        handler: userInfo
     })
     await s.start()
     console.log('server started: ', s.info.uri, ' started at: ', new Date(s.info.started))

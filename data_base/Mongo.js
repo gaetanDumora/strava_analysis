@@ -69,9 +69,6 @@ class MongoDatabase {
             console.log('insert ok: ', acknowledged, 'ID: ', upsertedId)
         } catch (error) {
             console.error(error)
-        } finally {
-            this.isConnect = false
-            return await this.client.close()
         }
     }
     async getUsersInfo(filter = {}) {
@@ -89,6 +86,10 @@ class MongoDatabase {
             this.isConnect = false
             await this.client.close()
         }
+    }
+    async closeConnexion(){
+        this.connect = false
+        return await this.client.close()
     }
 }
 
