@@ -71,4 +71,5 @@ export async function getUserActivities(userID) {
     //return await mongo.closeConnexion()
 }
 // My account id 18933919
+//Laetitia id 27149855
 getUserActivities(27149855)

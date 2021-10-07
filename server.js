@@ -12,7 +12,7 @@ async function init() {
 
     const s = server({
         host: 'localhost',
-        port: 8080,
+        port: process.env.PORT || 8080,
         routes: {
             files: {
                 relativeTo: DIR,
