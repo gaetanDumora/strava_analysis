@@ -49,7 +49,7 @@ export async function getUserValidToken(userID) {
                 }
             })
             await mongo.upsert('users_info', { "athlete.id": userID }, req.data)
-            return req.data.access_token
+            return await req.data.access_token
         } else {
             console.log('valid token')
             return access_token

@@ -25,19 +25,7 @@ class MongoDatabase {
             this.isConnect = false
         }
     }
-    async list() {
-        try {
-            if (!this.isConnect) {
-                await this.connect()
-            }
-            return console.log(await this.db.listCollections().toArray())
-        } catch (error) {
-            console.error(error)
-        } finally {
-            this.isConnect = false
-            return await this.client.close()
-        }
-    }
+
     async addCollection(name, data) {
         try {
             if (!this.isConnect) {
@@ -87,8 +75,24 @@ class MongoDatabase {
             await this.client.close()
         }
     }
-    async closeConnexion(){
-        this.connect = false
+    async getUsersActivity(filter = {}) {
+        try {
+            if (!this.isConnect) {
+                await this.connect()
+            }
+            const usersActivities = await this.db.collection('users_activity')
+                .find(filter)
+                .toArray()
+            return usersActivities
+        } catch (error) {
+            console.error(error)
+        } finally {
+            this.isConnect = false
+            await this.client.close()
+        }
+    }
+    async closeConnexion() {
+        this.isConnect = false
         return await this.client.close()
     }
 }

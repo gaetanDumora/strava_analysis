@@ -14,7 +14,7 @@ export async function getAuth(r, h) {
     // this code is used to get the first access and refresh token
     const userToken = await getAccessToken(code)
     await mongo.upsert('users_info', { "athlete.id": userToken.athlete.id }, userToken)
-    return h.view('./code.html', { code, scope, athlete: userToken.athlete })
+    return h.view('./code.html')
 }
 
 export async function userInfo(r, h) {
