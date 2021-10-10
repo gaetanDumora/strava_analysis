@@ -2,8 +2,10 @@ import { getAccessToken } from '../authorization/auth.js'
 import { mongo } from '../data_base/Mongo.js'
 
 export async function showAthletes(r, h) {
+    const [{total}] = await mongo.sum("users_activity", "distance")
     const athlete = (await mongo.getUsersInfo()).map(el => el.athlete)
     return h.view('./index.html', {
+        kms : (total / 1000).toFixed(2),
         users_info: athlete
     })
 }

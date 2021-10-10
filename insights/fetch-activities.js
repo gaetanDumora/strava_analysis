@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { mongo } from '../data_base/Mongo.js'
-import { getUserValidToken } from './auth.js'
+import { getUserValidToken } from '../authorization/auth.js'
 
 const VERSION = 'v3'
 
@@ -69,9 +69,5 @@ export async function getUserActivities(userID, sinceDate) {
     await browsePage(options, 1, GetActivitiesDetails)
 }
 
-// const ids = [318452, 33897681] 
-// ids.map(async id => await getUserActivities(id, "2019-01-01"))
-// await getUserActivities(8593716, "2019-01-01").then(async () => {
-//     console.log("get activities ended")
-//     // return await mongo.closeConnexion()
-// })
+const ids = [37928616, 37928616] 
+ids.map(async id => await getUserActivities(id, "2019-01-01"))

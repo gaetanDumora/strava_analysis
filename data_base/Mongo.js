@@ -70,10 +70,11 @@ class MongoDatabase {
             return usersInfo
         } catch (error) {
             console.error(error)
-        } finally {
-            this.isConnect = false
-            await this.client.close()
         }
+        // finally {
+        //     this.isConnect = false
+        //     await this.client.close()
+        // }
     }
     async getUsersActivity(filter = {}) {
         try {
@@ -86,10 +87,26 @@ class MongoDatabase {
             return usersActivities
         } catch (error) {
             console.error(error)
-        } finally {
-            this.isConnect = false
-            await this.client.close()
-        }
+        } 
+        // finally {
+        //     this.isConnect = false
+        //     await this.client.close()
+        // }
+    }
+    async sum(collectionName, fieldToAggregate) {
+        try {
+            if (!this.isConnect) {
+                await this.connect()
+            }
+            const collection = this.db.collection(collectionName)
+            const pipeline = [
+                {"$group": {_id: fieldToAggregate, "total": {"$sum": `$${fieldToAggregate}`}}}
+            ]
+            const r = await collection.aggregate(pipeline).toArray()
+            return r
+        } catch (error) {
+            console.error(error)
+        } 
     }
     async closeConnexion() {
         this.isConnect = false
