@@ -49,7 +49,7 @@ async function GetActivitiesDetails(activities, token) {
         }
     }))
     // Store activity if not exist (id and date)
-    return await collection.map(async activity => await mongo.upsert('test', { "athlete.id": activity.athlete.id, id: activity.id, start_date_local: activity.start_date_local }, activity))
+    return await collection.map(async activity => await mongo.upsert('users_activity', { "athlete.id": activity.athlete.id, id: activity.id, start_date_local: activity.start_date_local }, activity))
 }
 
 export async function getUserActivities(userID, sinceDate = "2019-01-01") {
