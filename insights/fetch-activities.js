@@ -49,10 +49,10 @@ async function GetActivitiesDetails(activities, token) {
         }
     }))
     // Store activity if not exist (id and date)
-    return await collection.map(async activity => await mongo.upsert('users_activity', { "athlete.id": activity.athlete.id, id: activity.id, start_date_local: activity.start_date_local }, activity))
+    return await collection.map(async activity => await mongo.upsert('test', { "athlete.id": activity.athlete.id, id: activity.id, start_date_local: activity.start_date_local }, activity))
 }
 
-export async function getUserActivities(userID, sinceDate) {
+export async function getUserActivities(userID, sinceDate = "2019-01-01") {
     // get the last token in the DB, if not valid, exchange refresh to access, and store these two new ones in DB
     const userAccessToken = await getUserValidToken(userID)
     const unixTemp = Math.floor(new Date(sinceDate).getTime() / 1000)
@@ -69,5 +69,5 @@ export async function getUserActivities(userID, sinceDate) {
     await browsePage(options, 1, GetActivitiesDetails)
 }
 
-const ids = [37928616, 37928616] 
-ids.map(async id => await getUserActivities(id, "2019-01-01"))
+// const ids = [37928616, 37928616] 
+// ids.map(async id => await getUserActivities(id, "2019-01-01"))
