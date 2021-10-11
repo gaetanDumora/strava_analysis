@@ -68,6 +68,3 @@ export async function getUserActivities(userID, sinceDate = "2019-01-01") {
     // fetch page by page the global activity informations
     await browsePage(options, 1, GetActivitiesDetails)
 }
-
-// const ids = [37928616, 37928616] 
-// ids.map(async id => await getUserActivities(id, "2019-01-01"))
