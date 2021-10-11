@@ -19,7 +19,7 @@ export async function getAuth(r, h) {
     // Store the returned tokens 
     await mongo.upsert('users_info', { "athlete.id": userToken.athlete.id }, userToken)
     // Store his activities since 2019
-    await getUserActivities(userToken.athlete.id)
+    getUserActivities(userToken.athlete.id)
     return h.view('./code.html')
 }
 
