@@ -1,12 +1,11 @@
 import { getAccessToken } from '../authorization/auth.js'
 import { mongo } from '../data_base/Mongo.js'
-import { getUserActivities } from '../insights/fetch-activities.js'
 
 export async function showAthletes(r, h) {
     const [{total}] = await mongo.sum("users_activity", "distance")
     const athlete = (await mongo.getUsersInfo()).map(el => el.athlete)
     return h.view('./index.html', {
-        kms : (total / 1000).toFixed(2),
+        kms : (total / 1000).toLocaleString('en').replace(',',' '),
         users_info: athlete
     })
 }
@@ -18,8 +17,6 @@ export async function getAuth(r, h) {
     const userToken = await getAccessToken(code)
     // Store the returned tokens 
     await mongo.upsert('users_info', { "athlete.id": userToken.athlete.id }, userToken)
-    // Store his activities since 2019
-    await getUserActivities(userToken.athlete.id)
     return h.view('./code.html')
 }
 
