@@ -81,3 +81,12 @@ const out = reader.map(async doc => {
 //     .pipe(fieldsFilter)
 //     // .pipe(writer)
 //     .pipe(process.stdout)
+
+reader.forEach(async (doc, index) => {
+    const { map: { polyline }, start_latitude, start_longitude } = doc
+    const path = polyline
+    const lat = String(start_latitude)
+    const lon = String(start_longitude)
+    let s = `${index};${lat};${lon};${path}\n`
+    await writeFile("./path.csv", s, { flag: "a" })
+})

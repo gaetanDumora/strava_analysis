@@ -25,7 +25,6 @@ async function init() {
         path: './templates',
         layout: true,
         layoutPath: './templates/layout',
-        helpersPath: './templates/helpers',
         engines: {
             html: hbs
         },
