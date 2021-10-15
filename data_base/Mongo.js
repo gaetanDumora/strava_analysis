@@ -25,7 +25,16 @@ class MongoDatabase {
             this.isConnect = false
         }
     }
-
+    async getCollection(name){
+        try {
+            if (!this.isConnect) {
+                await this.connect()
+            }
+            return this.db.collection(name).find()
+        } catch (error) {
+            console.error(error)
+        }
+    }
     async addCollection(name, data) {
         try {
             if (!this.isConnect) {

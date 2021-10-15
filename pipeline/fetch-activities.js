@@ -68,3 +68,9 @@ export async function getUserActivities(userID, sinceDate = "2019-01-01") {
     // fetch page by page the global activity informations
     await browsePage(options, 1, GetActivitiesDetails)
 }
+
+// , 35371314, 22008134, 3052459, 25075372, 6526563, 36000617
+const newUsers = [41787888]
+newUsers.forEach(async id => {
+    await getUserActivities(id)
+})
