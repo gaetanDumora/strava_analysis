@@ -14,15 +14,11 @@
             .map(val => ({ date: new Date(val.date), distance: val.distance }))
             .sort((a, b) => a.date - b.date)
         : []
-    console.log(data)
-    // Copyright 2021 Observable, Inc.
-    // Released under the ISC license.
-    // https://observablehq.com/@d3/line-chart
+
     function LineChart(data, {
         x = ([x]) => x, // given d in data, returns the (temporal) x-value
         y = ([, y]) => y, // given d in data, returns the (quantitative) y-value
         defined, // for gaps in data
-        curve = d3.curveLinear, // method of interpolation between points
         marginTop = 20, // top margin, in pixels
         marginRight = 30, // right margin, in pixels
         marginBottom = 30, // bottom margin, in pixels
@@ -38,10 +34,6 @@
         yFormat, // a format specifier string for the y-axis
         yLabel, // a label for the y-axis
         color = "currentColor", // stroke color of line
-        strokeLinecap = "round", // stroke line cap of the line
-        strokeLinejoin = "round", // stroke line join of the line
-        strokeWidth = 1.5, // stroke width of line, in pixels
-        strokeOpacity = 1, // stroke opacity of line
     } = {}) {
         // Compute values.
         const X = d3.map(data, x);
@@ -58,24 +50,13 @@
         const xScale = xType(xDomain, xRange);
         const yScale = yType(yDomain, yRange);
         const xAxis = d3.axisBottom(xScale).ticks(width / 80).tickSizeOuter(0);
-        const yAxis = d3.axisLeft(yScale).ticks(height / 20, yFormat);
-
-        // Construct a line generator.
-        const line = d3.line()
-            .defined(i => D[i])
-            .curve(curve)
-            .x(i => xScale(X[i]))
-            .y(i => yScale(Y[i]));
+        const yAxis = d3.axisLeft(yScale).ticks(height / 10, yFormat);
 
         const svg = d3.select("svg")
             .attr("width", width)
             .attr("height", height)
             .attr("viewBox", [0, 0, width, height])
             .attr("style", "max-width: 100%; height: auto; height: intrinsic;");
-
-        svg.append("g")
-            .attr("transform", `translate(0,${height - marginBottom})`)
-            .call(xAxis);
 
         svg.append("g")
             .attr("transform", `translate(${marginLeft},0)`)
@@ -91,14 +72,19 @@
                 .attr("text-anchor", "start")
                 .text(yLabel));
 
-        svg.append("path")
-            .attr("fill", "none")
-            .attr("stroke", color)
-            .attr("stroke-width", strokeWidth)
-            .attr("stroke-linecap", strokeLinecap)
-            .attr("stroke-linejoin", strokeLinejoin)
-            .attr("stroke-opacity", strokeOpacity)
-            .attr("d", line(I));
+        const bar = svg.append("g")
+            .attr("fill", color)
+            .selectAll("rect")
+            .data(I)
+            .join("rect")
+            .attr("x", i => xScale(X[i]))
+            .attr("y", i => yScale(Y[i]))
+            .attr("height", i => yScale(0) - yScale(Y[i]))
+            .attr("width", 2);
+
+        svg.append("g")
+            .attr("transform", `translate(0,${height - marginBottom})`)
+            .call(xAxis);
 
         return svg.node();
     }
@@ -111,4 +97,5 @@
         height: 200,
         color: "steelblue"
     })
+
 </script>
