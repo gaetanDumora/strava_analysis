@@ -4,7 +4,7 @@ import { createWriteStream } from 'fs'
 import { writeFile } from 'fs/promises'
 
 // for output file 
-const writer = createWriteStream('./ouput.csv', { encoding: 'utf8', flags: "a" })
+// const writer = createWriteStream('./ouput.csv', { encoding: 'utf8', flags: "a" })
 
 // tranform stream readable from mongo, filter relevent fields, data type transformation (string utf8), writable to .csv
 const fieldsFilter = new Transform({
@@ -45,12 +45,17 @@ const fieldsFilter = new Transform({
 // Init mongo connexion 
 const acts = await mongo.getCollection('users_activity')
 // faster stream choice
-const readStream = acts.stream()
+// const readStream = acts.stream()
 // or array methode slower, but work correctly
 const reader = await acts.toArray()
-const out = reader.map(async doc => {
+reader.map(async doc => {
+    const [{ athlete }] = await mongo.getUsersInfo({ "athlete.id": doc.athlete.id })
+    const id = athlete.id ? athlete.id : 0
+    const weight = athlete.weight ? athlete.weight : 0
+    const sex = athlete.sex ? athlete.sex : "U"
     let not = "0"
     const {
+        start_date,
         average_cadence,
         average_heartrate,
         average_speed,
@@ -62,6 +67,7 @@ const out = reader.map(async doc => {
         moving_time,
         total_elevation_gain
     } = doc
+    const date = new Date(start_date).toISOString().split('T')[0]
     const cadence = average_cadence ? String(average_cadence) : not
     const heartrate = average_heartrate ? String(average_heartrate) : not
     const speed = average_speed ? String(average_speed) : not
@@ -72,21 +78,20 @@ const out = reader.map(async doc => {
     const maxSpeed = max_speed ? String(max_speed) : not
     const time = moving_time ? String(moving_time) : not
     const elevation = total_elevation_gain ? String(total_elevation_gain) : not
-    let s = `${cadence};${heartrate};${speed};${temp};${cal};${dist};${maxHeart};${maxSpeed};${time};${elevation}\n`
+    let s = `${id};${weight};${sex};${date};${cadence};${heartrate};${speed};${temp};${cal};${dist};${maxHeart};${maxSpeed};${time};${elevation}\n`
     // output 
-    return await writeFile('./out.csv', s, { flag: "a", encoding:"utf8" })
-
+    return await writeFile('./data.csv', s, { flag: "a", encoding: "utf8" })
 })
 // readStream
 //     .pipe(fieldsFilter)
 //     // .pipe(writer)
 //     .pipe(process.stdout)
 
-reader.forEach(async (doc, index) => {
-    const { map: { polyline }, start_latitude, start_longitude } = doc
-    const path = polyline
-    const lat = String(start_latitude)
-    const lon = String(start_longitude)
-    let s = `${index};${lat};${lon};${path}\n`
-    await writeFile("./path.csv", s, { flag: "a" })
-})
+// reader.forEach(async (doc, index) => {
+//     const { map: { polyline }, start_latitude, start_longitude } = doc
+//     const path = polyline
+//     const lat = String(start_latitude)
+//     const lon = String(start_longitude)
+//     let s = `${index};${lat};${lon};${path}\n`
+//     await writeFile("./path.csv", s, { flag: "a" })
+// })

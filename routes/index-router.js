@@ -20,12 +20,6 @@ export async function getAuth(r, h) {
     return h.view('./code.html')
 }
 
-export async function userInfo(r, h) {
-    const { user_id } = r.query
-    const [{ athlete }] = await mongo.getUsersInfo({ "athlete.id": Number(user_id) })
-    return h.view('./user.html', { info: athlete })
-}
-
 export async function userGraph(r, h) {
     const { user_id } = r.query
     const [{ athlete: { firstname } }] = await mongo.getUsersInfo({ "athlete.id": Number(user_id) })
@@ -33,10 +27,10 @@ export async function userGraph(r, h) {
         "athlete.id": Number(user_id),
         "start_date": { $gte: '2021-01-01' }
     })
-    const values = activities.map(activity =>{
-        const {start_date, distance} = activity
+    const values = activities.map(activity => {
+        const { start_date, distance } = activity
         const date = new Date(start_date).toISOString().split('T')[0]
-        return {date: date, distance: Number((distance/1000).toPrecision(2))}
+        return { date: date, distance: Number((distance / 1000).toPrecision(2)) }
     })
     return h.view('./graph.html', { name: firstname, activities: values })
 }

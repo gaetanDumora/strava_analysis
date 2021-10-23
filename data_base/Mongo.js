@@ -117,6 +117,7 @@ class MongoDatabase {
             console.error(error)
         } 
     }
+    // How and when close the fucking db ??
     async closeConnexion() {
         this.isConnect = false
         return await this.client.close()

@@ -32,6 +32,13 @@ async function browsePage(options, pageNb = 1, cb) {
     }
 }
 
+function dateToUnixTemp(stringDate) {
+    const now = new Date()
+    const d = new Date(stringDate)
+    const r = d > now ? now : d
+    return Math.floor(r.getTime() / 1000)
+}
+
 async function GetActivitiesDetails(activities, token) {
     // Need to focus only on runing activities
     const runingActivities = activities.filter(activity => activity.type === 'Run')
@@ -49,14 +56,8 @@ async function GetActivitiesDetails(activities, token) {
         }
     }))
     // Store activity if not exist (filter by athlete, activitty id, and date)
-    return await collection.map(async activity => await mongo.upsert('users_activity', { "athlete.id": activity.athlete.id, id: activity.id, start_date_local: activity.start_date_local }, activity))
-}
-
-function dateToUnixTemp(stringDate) {
-    const now = new Date()
-    const d = new Date(stringDate)
-    const r = d > now ? now : d
-    return Math.floor(r.getTime() / 1000)
+    return await collection.map(async activity =>
+        await mongo.upsert('users_activity', { "athlete.id": activity.athlete.id, id: activity.id, start_date_local: activity.start_date_local }, activity))
 }
 
 export async function getUserActivities(userID, sinceDate = "2019-01-01", untilDate = "2022-01-01") {
@@ -79,7 +80,22 @@ export async function getUserActivities(userID, sinceDate = "2019-01-01", untilD
 }
 
 // , 35371314, 22008134, 3052459, 25075372, 6526563, 36000617 me:18933919
-const newUsers = [18933919]
-newUsers.forEach(async id => {
-    await getUserActivities(id, "2021-10-15")
-})
+// const newUsers = [43786409]
+// newUsers.forEach(async id => {
+//     await getUserActivities(id)
+// })
+
+export async function updateAcitivities() {
+    const now = new Date()
+    const sevenDaysAgo = new Date(now.setDate(new Date().getDate() - 10))
+        .toISOString()
+        .split('T')[0]
+
+    const getIds = (async () => {
+        const users = await mongo.getUsersInfo()
+        return users.map(user => user.athlete.id)
+    })()
+    const ids = await getIds
+    return ids.forEach(id => getUserActivities(id, sevenDaysAgo))
+}
+// await updateAcitivities()
