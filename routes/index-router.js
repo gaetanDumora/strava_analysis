@@ -2,10 +2,10 @@ import { getAccessToken } from '../authorization/auth.js'
 import { mongo } from '../data_base/Mongo.js'
 
 export async function showAthletes(r, h) {
-    const [{total}] = await mongo.sum("users_activity", "distance")
+    const [{ total }] = await mongo.sum("users_activity", "distance")
     const athlete = (await mongo.getUsersInfo()).map(el => el.athlete).sort((a, b) => (a.firstname > b.firstname) ? 1 : ((b.firstname > a.firstname) ? -1 : 0))
     return h.view('./index.html', {
-        kms : (total / 1000).toLocaleString('en').replace(',',' '),
+        kms: (total / 1000).toLocaleString('en').replace(',', ' '),
         users_info: athlete
     })
 }
@@ -24,4 +24,19 @@ export async function userInfo(r, h) {
     const { user_id } = r.query
     const [{ athlete }] = await mongo.getUsersInfo({ "athlete.id": Number(user_id) })
     return h.view('./user.html', { info: athlete })
+}
+
+export async function userGraph(r, h) {
+    const { user_id } = r.query
+    const [{ athlete: { firstname } }] = await mongo.getUsersInfo({ "athlete.id": Number(user_id) })
+    const activities = await mongo.getUsersActivity({
+        "athlete.id": Number(user_id),
+        "start_date": { $gte: '2021-01-01' }
+    })
+    const values = activities.map(activity =>{
+        const {start_date, distance} = activity
+        const date = new Date(start_date).toISOString().split('T')[0]
+        return {date: date, distance: Number((distance/1000).toPrecision(2))}
+    })
+    return h.view('./graph.html', { name: firstname, activities: values })
 }
