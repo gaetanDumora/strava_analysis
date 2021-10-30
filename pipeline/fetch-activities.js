@@ -80,14 +80,14 @@ export async function getUserActivities(userID, sinceDate = "2019-01-01", untilD
 }
 
 // , 35371314, 22008134, 3052459, 25075372, 6526563, 36000617 me:18933919
-// const newUsers = [43786409]
+// const newUsers = [18961285]
 // newUsers.forEach(async id => {
 //     await getUserActivities(id)
 // })
 
 export async function updateAcitivities() {
     const now = new Date()
-    const sevenDaysAgo = new Date(now.setDate(new Date().getDate() - 10))
+    const sevenDaysAgo = new Date(now.setDate(new Date().getDate() - 5))
         .toISOString()
         .split('T')[0]
 
@@ -98,4 +98,4 @@ export async function updateAcitivities() {
     const ids = await getIds
     return ids.forEach(id => getUserActivities(id, sevenDaysAgo))
 }
-// await updateAcitivities()
+await updateAcitivities()

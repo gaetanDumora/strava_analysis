@@ -25,7 +25,7 @@ export async function userGraph(r, h) {
     const [{ athlete: { firstname } }] = await mongo.getUsersInfo({ "athlete.id": Number(user_id) })
     const activities = await mongo.getUsersActivity({
         "athlete.id": Number(user_id),
-        "start_date": { $gte: '2021-01-01' }
+        // "start_date": { $gte: '2021-01-01' }
     })
     const values = activities.map(activity => {
         const { start_date, distance } = activity
@@ -33,4 +33,8 @@ export async function userGraph(r, h) {
         return { date: date, distance: Number((distance / 1000).toPrecision(2)) }
     })
     return h.view('./graph.html', { name: firstname, activities: values })
+}
+
+export async function sendCSV(r, h){
+    
 }

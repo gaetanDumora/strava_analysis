@@ -56,6 +56,13 @@ async function init() {
         path: '/athlete',
         handler: userGraph
     })
+    s.route({
+        method: 'GET',
+        path: '/data',
+        handler: (r, h) => {
+            return h.file('./pipeline/data.csv')
+        }
+    })
     await s.start()
     console.log('server started: ', s.info.uri, ' started at: ', new Date(s.info.started))
 }
