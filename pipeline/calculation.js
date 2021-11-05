@@ -1,124 +1,137 @@
 import { mongo } from '../data_base/Mongo.js'
 import { Transform } from 'stream'
-import { createWriteStream, createReadStream } from 'fs'
 import { writeFile } from 'fs/promises'
 
-// for output file 
-// const writer = createWriteStream('./ouput.csv', { encoding: 'utf8', flags: "a" })
+function formatNum(int) {
+    return Number(int.toFixed(2))
+}
 
-// tranform stream readable from mongo, filter relevent fields, data type transformation (string utf8), writable to .csv
-const fieldsFilter = new Transform({
-    readableObjectMode: true,
-    writableObjectMode: true,
-    transform(chunk, encoding, callback) {
-        const not = "0"
+function summary(arr) {
+    const sum = formatNum(arr.reduce((acc, curr) => acc + curr, 0))
+    const n = arr.length
+    const mean = formatNum(sum / n)
+    const std = (arr.reduce((acc, curr) => acc + Math.pow(curr - mean, 2), 0)) / n
+    return {
+        sum,
+        mean,
+        std2: formatNum(std),
+        std: formatNum(Math.sqrt(std))
+    }
+}
+
+const filteredFields = {
+    "athlete.id": true,
+    "average_cadence": true,
+    "average_heartrate": true,
+    "average_speed": true,
+    "average_temp": true,
+    "calories": true,
+    "distance": true,
+    "elev_high": true,
+    "elev_low": true,
+    "max_heartrate": true,
+    "max_speed": true,
+    "moving_time": true,
+    "splits_metric": true,
+    "start_date": true,
+    "total_elevation_gain": true
+}
+
+const calculation = new Transform({
+    objectMode: true,
+    transform(chunk, encoding, cb) {
+        const { splits_metric } = chunk
+        const avgSpeed = splits_metric
+            ? splits_metric.map(x => x.average_speed)
+            : []
+        const avgHeartrate = splits_metric
+            ? splits_metric.map(
+                x => x.average_heartrate
+                    ? x.average_heartrate
+                    : 0)
+            : []
+        chunk.speed_summary = summary(avgSpeed)
+        chunk.heartrate_summary = summary(avgHeartrate)
+        this.push(chunk)
+        cb()
+    }
+})
+const userProfil = new Transform({
+    objectMode: true,
+    async transform(chunk, encoding, cb) {
+        const [{ athlete }] = await mongo.getUsersInfo({ "athlete.id": chunk.athlete.id })
+        chunk.id = athlete.id
+        chunk.weight = athlete.weight ? athlete.weight : 0
+        chunk.sex = athlete.sex ? athlete.sex : "U"
+        this.push(chunk)
+        cb()
+    }
+})
+const toCsv = new Transform({
+    objectMode: true,
+    async transform(chunk, encoding, cb) {
         const {
+            id,
+            weight,
+            sex,
             average_cadence,
             average_heartrate,
             average_speed,
             average_temp,
             calories,
             distance,
+            elev_high,
+            elev_low,
             max_heartrate,
             max_speed,
             moving_time,
-            total_elevation_gain
+            start_date,
+            total_elevation_gain,
+            speed_summary: { mean: speedAvg, std2: speedVar, std: speedStd },
+            heartrate_summary: { mean: htAvg, std2: htVar, std: htStd }
         } = chunk
-
-        const cadence = average_cadence ? String(average_cadence) : not
-        const heartrate = average_heartrate ? String(average_heartrate) : not
-        const speed = average_speed ? String(average_speed) : not
-        const temp = average_temp ? String(average_temp) : not
-        const cal = calories ? String(calories) : not
-        const dist = distance ? String(distance) : not
-        const maxHeart = max_heartrate ? String(max_heartrate) : not
-        const maxSpeed = max_speed ? String(max_speed) : not
-        const time = moving_time ? String(moving_time) : not
-        const elevation = total_elevation_gain ? String(total_elevation_gain) : not
-        // push into internal buffer
-        this.push(cadence + " ", heartrate + " ", speed + " ", temp + " ", cal + " ", dist + " ", maxHeart + " ", maxSpeed + " ", time + " ", elevation, "\n")
-        // passing cb to initiate the next chunk of data
-        callback()
+        const s = `${id},${sex},${weight},${start_date},${calories},${average_cadence},${average_temp},${distance},${elev_high},${elev_low},${max_heartrate},${max_speed},${moving_time},${total_elevation_gain},${speedAvg},${speedVar},${speedStd},${htAvg},${htVar},${htStd}\n`
+        await writeFile('data1.csv', s, { flag: "a" })
+        cb()
+    },
+    async flush() {
+        console.log("End of stream")
+        return await mongo.closeConnexion()
     }
 })
 
-// Init mongo connexion 
-// const acts = await mongo.getCollection('users_activity')
-// faster stream choice
-// const readStream = acts.stream()
-// or array methode slower, but work correctly
-// const reader = await acts.toArray()
-// reader.map(async doc => {
-//     const [{ athlete }] = await mongo.getUsersInfo({ "athlete.id": doc.athlete.id })
-//     const id = athlete.id ? athlete.id : 0
-//     const weight = athlete.weight ? athlete.weight : 0
-//     const sex = athlete.sex ? athlete.sex : "U"
-//     let not = "0"
-//     const {
-//         start_date,
-//         average_cadence,
-//         average_heartrate,
-//         average_speed,
-//         average_temp,
-//         calories,
-//         distance,
-//         max_heartrate,
-//         max_speed,
-//         moving_time,
-//         total_elevation_gain
-//     } = doc
-//     const date = new Date(start_date).toISOString().split('T')[0]
-//     const cadence = average_cadence ? String(average_cadence) : not
-//     const heartrate = average_heartrate ? String(average_heartrate) : not
-//     const speed = average_speed ? String(average_speed) : not
-//     const temp = average_temp ? String(average_temp) : not
-//     const cal = calories ? String(calories) : not
-//     const dist = distance ? String(distance) : not
-//     const maxHeart = max_heartrate ? String(max_heartrate) : not
-//     const maxSpeed = max_speed ? String(max_speed) : not
-//     const time = moving_time ? String(moving_time) : not
-//     const elevation = total_elevation_gain ? String(total_elevation_gain) : not
-//     let s = `${id};${weight};${sex};${date};${cadence};${heartrate};${speed};${temp};${cal};${dist};${maxHeart};${maxSpeed};${time};${elevation}\n`
-//     // output 
-//     return await writeFile('./data.csv', s, { flag: "a", encoding: "utf8" })
-// })
-// readStream
-//     .pipe(fieldsFilter)
-//     // .pipe(writer)
-//     .pipe(process.stdout)
+const users_activity = await mongo.getCollection("users_activity")
+const activities = users_activity.find({
+    // "athlete.id": 18933919,
+    // "start_date": { $gte: "2021-10-01" }
+},
+    { projection: filteredFields })
+    .stream()
 
-// reader.forEach(async (doc, index) => {
-//     const { map: { polyline }, start_latitude, start_longitude } = doc
-//     const path = polyline
-//     const lat = String(start_latitude)
-//     const lon = String(start_longitude)
-//     let s = `${index};${lat};${lon};${path}\n`
-//     await writeFile("./path.csv", s, { flag: "a" })
-// })
+activities
+    .pipe(calculation)
+    .pipe(userProfil)
+    .pipe(toCsv)
 
-function stats(arr) {
-    const sum = arr.reduce((acc, curr) => acc + curr, 0)
-    const n = arr.length
-    const mean = sum / n
-    const std = arr.reduce((acc, curr) => {
-        return acc + Math.pow(curr - mean, 2)
-    }, 0)
-    return {
-        sum,
-        mean,
-        std2: Number((std / n).toFixed(2)),
-        std: Number(Math.sqrt(std / n).toFixed(2))
-    }
-}
+// mapReduce not in free account....
+// const acts = await mongo.getCollection("users_activity")
 
-const arr = [12, 15, 10, 13, 16, 12, 10, 13, 17, 8]
+// const mapFunction = () => {
+//     const key = this._id
+//     const values = { date: this.start_date, distance: this.distance, avg_speed: this.average_speed, metrics: this.splits_metric }
+//     // emit(key, values)
+// }
+// const reduceFunction = (k, v) => {
+//     console.log(k, v)
+// }
+// try {
+//     acts.mapReduce(mapFunction, reduceFunction, {
+//         query: { "athlete.id": 18933919, "start_date": { $gte: "2021-01-01" } },
+//         out: { inline: 1 }
+//     })
+// } catch (error) {
+//     console.error(error)
+// }
 
-const activities = await mongo.getCollection("users_activity")
-const readStream = createReadStream(await activities.toArray())
 
-    .on("data", (chunk) => console.log(chunk))
-    .on("end", () => {
-        console.log("EOS")
-        return mongo.closeConnexion()
-    })
-// console.log(stats(arr))
+// mongo.closeConnexion()

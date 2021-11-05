@@ -1,9 +1,16 @@
 import { getAccessToken } from '../authorization/auth.js'
 import { mongo } from '../data_base/Mongo.js'
+import { getUserActivities } from '../pipeline/fetch-activities.js'
 
 export async function showAthletes(r, h) {
     const [{ total }] = await mongo.sum("users_activity", "distance")
-    const athlete = (await mongo.getUsersInfo()).map(el => el.athlete).sort((a, b) => (a.firstname > b.firstname) ? 1 : ((b.firstname > a.firstname) ? -1 : 0))
+    const athlete = (await mongo.getUsersInfo())
+        .map(el => el.athlete)
+        .sort((a, b) => (a.firstname > b.firstname)
+            ? 1
+            : ((b.firstname > a.firstname)
+                ? -1
+                : 0))
     return h.view('./index.html', {
         kms: (total / 1000).toLocaleString('en').replace(',', ' '),
         users_info: athlete
@@ -17,6 +24,7 @@ export async function getAuth(r, h) {
     const userToken = await getAccessToken(code)
     // Store the returned tokens 
     await mongo.upsert('users_info', { "athlete.id": userToken.athlete.id }, userToken)
+        .then(getUserActivities(userToken.athlete.id ))
     return h.view('./code.html')
 }
 
@@ -35,6 +43,6 @@ export async function userGraph(r, h) {
     return h.view('./graph.html', { name: firstname, activities: values })
 }
 
-export async function sendCSV(r, h){
-    
+export async function sendCSV(r, h) {
+
 }

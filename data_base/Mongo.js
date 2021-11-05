@@ -30,7 +30,7 @@ class MongoDatabase {
             if (!this.isConnect) {
                 await this.connect()
             }
-            return this.db.collection(name).find()
+            return this.db.collection(name)
         } catch (error) {
             console.error(error)
         }
@@ -85,13 +85,13 @@ class MongoDatabase {
         //     await this.client.close()
         // }
     }
-    async getUsersActivity(filter = {}) {
+    async getUsersActivity(filter = {}, options = {}) {
         try {
             if (!this.isConnect) {
                 await this.connect()
             }
             const usersActivities = await this.db.collection('users_activity')
-                .find(filter)
+                .find(filter,options)
                 .toArray()
             return usersActivities
         } catch (error) {
