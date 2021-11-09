@@ -98,4 +98,4 @@ export async function updateAcitivities() {
     const ids = await getIds
     return ids.forEach(id => getUserActivities(id, sevenDaysAgo))
 }
-await updateAcitivities()
+// await updateAcitivities()
