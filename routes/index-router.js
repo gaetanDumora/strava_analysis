@@ -1,6 +1,6 @@
-import { getAccessToken } from '../authorization/auth.js'
+import { getAccessToken } from '../logic/auth.js'
 import { mongo } from '../data_base/Mongo.js'
-import { getUserActivities } from '../pipeline/fetch-activities.js'
+import { getUserActivities } from '../logic/fetch-activities.js'
 
 export async function showAthletes(r, h) {
     const [{ total }] = await mongo.sum("users_activity", "distance")
@@ -41,8 +41,4 @@ export async function userGraph(r, h) {
         return { date: date, distance: Number((distance / 1000).toPrecision(2)) }
     })
     return h.view('./graph.html', { name: firstname, activities: values })
-}
-
-export async function sendCSV(r, h) {
-
 }

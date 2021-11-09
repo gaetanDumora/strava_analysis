@@ -1,6 +1,6 @@
 import axios from 'axios'
 import { mongo } from '../data_base/Mongo.js'
-import { getUserValidToken } from '../authorization/auth.js'
+import { getUserValidToken } from './auth.js'
 
 const VERSION = 'v3'
 
@@ -39,7 +39,7 @@ function dateToUnixTemp(stringDate) {
     return Math.floor(r.getTime() / 1000)
 }
 
-async function GetActivitiesDetails(activities, token) {
+async function getDetails(activities, token) {
     // Need to focus only on runing activities
     const runingActivities = activities.filter(activity => activity.type === 'Run')
     // And get more details about it, by requesting the API activities ID node 
@@ -76,7 +76,7 @@ export async function getUserActivities(userID, sinceDate = "2019-01-01", untilD
         headers: { Authorization: `Bearer ${userAccessToken}` }
     }
     // retrieve global information on the activity page by page, and pass it to the callback
-    await browsePage(options, 1, GetActivitiesDetails)
+    await browsePage(options, 1, getDetails)
 }
 
 // , 35371314, 22008134, 3052459, 25075372, 6526563, 36000617 me:18933919
@@ -98,4 +98,4 @@ export async function updateAcitivities() {
     const ids = await getIds
     return ids.forEach(id => getUserActivities(id, sevenDaysAgo))
 }
-// await updateAcitivities()
+await updateAcitivities()

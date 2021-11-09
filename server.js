@@ -4,7 +4,10 @@ import vision from '@hapi/vision' // templating
 import hbs from 'handlebars'
 import { dirname } from 'path'
 import { fileURLToPath } from 'url'
-import { showAthletes, getAuth, userGraph } from './routes/index-router.js'
+import { showAthletes } from './routes/index-router.js'
+import { getAuth } from './routes/confirm-route.js'
+import { userGraph } from './routes/graph-route.js'
+
 
 const DIR = dirname(fileURLToPath(import.meta.url))
 
@@ -19,7 +22,7 @@ async function init() {
     })
     await s.register(inert)//register for statics files
     await s.register(vision)//register for template engine
-  
+
     s.views({
         relativeTo: DIR,
         path: './templates',
@@ -56,13 +59,6 @@ async function init() {
         path: '/athlete',
         handler: userGraph
     })
-    // s.route({
-    //     method: 'GET',
-    //     path: '/data',
-    //     handler: (r, h) => {
-    //         return h.file('./pipeline/data1.csv')
-    //     }
-    // })
     await s.start()
     console.log('server started: ', s.info.uri, ' started at: ', new Date(s.info.started))
 }

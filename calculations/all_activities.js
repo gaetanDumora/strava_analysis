@@ -91,7 +91,7 @@ const toCsv = new Transform({
             heartrate_summary: { mean: htAvg, std2: htVar, std: htStd }
         } = chunk
         const s = `${id},${sex},${weight},${start_date},${calories},${average_cadence},${average_temp},${distance},${elev_high},${elev_low},${max_heartrate},${max_speed},${moving_time},${total_elevation_gain},${speedAvg},${speedVar},${speedStd},${htAvg},${htVar},${htStd}\n`
-        await writeFile('data1.csv', s, { flag: "a" })
+        await writeFile('../data/all_activities.csv', s, { flag: "a" })
         cb()
     },
     async flush() {
@@ -101,21 +101,15 @@ const toCsv = new Transform({
 })
 
 const users_activity = await mongo.getCollection("users_activity")
-const activities = users_activity.find({
-    // "athlete.id": 18933919,
-    // "start_date": { $gte: "2021-10-01" }
-},
+users_activity.find({},
     { projection: filteredFields })
     .stream()
-
-activities
     .pipe(calculation)
     .pipe(userProfil)
     .pipe(toCsv)
 
 // mapReduce not in free account....
 // const acts = await mongo.getCollection("users_activity")
-
 // const mapFunction = () => {
 //     const key = this._id
 //     const values = { date: this.start_date, distance: this.distance, avg_speed: this.average_speed, metrics: this.splits_metric }
@@ -132,6 +126,3 @@ activities
 // } catch (error) {
 //     console.error(error)
 // }
-
-
-// mongo.closeConnexion()
