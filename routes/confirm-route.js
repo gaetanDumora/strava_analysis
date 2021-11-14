@@ -1,4 +1,5 @@
 import { getAccessToken } from '../logic/auth.js'
+import { getUserActivities } from '../logic/fetch-activities.js'
 import { mongo } from '../data_base/Mongo.js'
 
 //when the user accept, he's redirected to /confirm with the code in the url
