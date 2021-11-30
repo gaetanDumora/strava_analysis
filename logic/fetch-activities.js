@@ -111,24 +111,33 @@ export async function updateAcitivities() {
 
 async function getStream(activittyID, userToken) {
     try {
-        const { data: {
-            time: { data: second },
-            distance: { data: meter },
-            cadence: { data: ppm },
-            heartrate: { data: bpm },
-            altitude: { data: elevation },
-            velocity_smooth: { data: velocity },
-            grade_smooth: { data: grade },
-            temp: { data: deg }
-        } } = await axios({
+        const { data } = await axios({
             method: 'GET',
             url: `https://www.strava.com/api/${VERSION}/activities/${activittyID}/streams?keys=time,distance,altitude,velocity_smooth,heartrate,cadence,watts,temp,moving,grade_smooth&key_by_type=true`,
             headers: { Authorization: `Bearer ${userToken}` }
         })
+        const deg = data.temp.data
+        const seconds = data.time.data
+        const meters = data.distance.data
+        const ppm = data.cadence.data
+        const bpm = data.cadence.data || seconds.map(() => 0)
+        const elevation = data.altitude.data || seconds.map(() => 0)
+        const velocity = data.velocity_smooth.data
+        const grade = data.grade_smooth.data
+        // {
+        //     time: { data: second },
+        //     distance: { data: meter },
+        //     cadence: { data: ppm },
+        //     heartrate: { data: bpm },
+        //     altitude: { data: elevation },
+        //     velocity_smooth: { data: velocity },
+        //     grade_smooth: { data: grade },
+        //     temp: { data: deg }
+        // }
         const res = [
             deg,
-            second,
-            meter,
+            seconds,
+            meters,
             ppm,
             bpm,
             elevation,
@@ -144,20 +153,21 @@ async function getStream(activittyID, userToken) {
 async function streamActivities() {
     const access = await getUserValidToken(18933919)
     const acts = await mongo.getCollection("users_activity")
-    const thisActs = await acts.find({ "athlete.id": 18933919, "start_date": { "$gte": "2020-12-31T00:00:00Z" } }).project({ "id": 1, "_id": 0 }).toArray()
+    const thisActs = await acts.find({ "athlete.id": 18933919, "start_date": { "$gte": "2021-09-01T00:00:00Z" } }).project({ "id": 1, "_id": 0 }).toArray()
     const ids = thisActs.map(e => e.id)
-    const stream = (await Promise.all(ids.map(id => getStream(id, access))))
-    stream.forEach((run, i) => {
-        run.forEach(async second => {
-            second.unshift(i)
-            second.push('\n')
-            const s = second.toString()
-            await writeFile('../data/stream.csv', s, { flag: "a" })
-        })
-    })
+    return await Promise.all(ids.map(id => getStream(id, access)))
 }
-// await streamActivities()
-// await mongo.closeConnexion()
+
+const stream = await streamActivities()
+
+stream.forEach((run, i) => {
+    run.forEach(async second => {
+        second.unshift(i)
+        const s = second.toString() + '\n'
+        await writeFile('../data/stream.csv', s, { flag: "a" })
+    })
+})
+await mongo.closeConnexion()
 
 const summary = [
     { sum: 11640, mean: 13.92, std2: 6.49, std: 2.55 },
@@ -175,8 +185,12 @@ const summary = [
 // console.log(matrix)
 // await mongo.closeConnexion()
 
-const arr = [[1, 2, 3], [11, 22, 33], [111, 222, 333], [1111, 2222, 3333], [11111, 22222, 33333]]
+// const arr = [[1, 2, 3], [11, 22, 33], [111, 222, 333], [1111, 2222, 3333], [11111, 22222, 33333]]
 
-const mx = arr.reduce(transpose, [])
+// const mx = arr.reduce(transpose, [])
 
-console.log(mx)
+// console.log(mx)
+
+// const s = [1, 2, 3].toString() + '\n'
+
+// console.log(s)
