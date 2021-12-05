@@ -6,7 +6,7 @@ import { dirname } from 'path'
 import { fileURLToPath } from 'url'
 import { showAthletes } from './routes/index-router.js'
 import { getAuth } from './routes/confirm-route.js'
-import { userGraph } from './routes/graph-route.js'
+import { userGraph, stream } from './routes/graph-route.js'
 
 
 const DIR = dirname(fileURLToPath(import.meta.url))
@@ -59,6 +59,12 @@ async function init() {
         path: '/athlete',
         handler: userGraph
     })
+    s.route({
+        method: 'GET',
+        path: '/stream/{ids?}',
+        handler: stream
+    })
+
     await s.start()
     console.log('server started: ', s.info.uri, ' started at: ', new Date(s.info.started))
 }

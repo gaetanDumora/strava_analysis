@@ -109,7 +109,39 @@ export async function updateAcitivities() {
 }
 // await updateAcitivities()
 
-async function getStream(activittyID, userToken) {
+export async function getActivityStream(userID, activityID) {
+    const access = await getUserValidToken(userID)
+    try {
+        const { data } = await axios({
+            method: 'GET',
+            url: `https://www.strava.com/api/${VERSION}/activities/${activityID}/streams?keys=time,distance,altitude,velocity_smooth,heartrate,cadence,watts,temp,moving,grade_smooth&key_by_type=true`,
+            headers: { Authorization: `Bearer ${access}` }
+        })
+        const deg = data.temp.data
+        const seconds = data.time.data
+        const meters = data.distance.data
+        const ppm = data.cadence.data
+        const bpm = data.cadence.data || seconds.map(() => 0)
+        const elevation = data.altitude.data || seconds.map(() => 0)
+        const velocity = data.velocity_smooth.data
+        const grade = data.grade_smooth.data
+        return {
+            sc: seconds,
+            mt: meters,
+            pm: ppm,
+            bm: bpm,
+            el: elevation,
+            vy: velocity,
+            gr: grade,
+            dg: deg
+        }
+    } catch (error) {
+        console.log(error)
+        return {}
+    }
+}
+
+async function getStream(activittyID, userToken, date) {
     try {
         const { data } = await axios({
             method: 'GET',
@@ -124,25 +156,17 @@ async function getStream(activittyID, userToken) {
         const elevation = data.altitude.data || seconds.map(() => 0)
         const velocity = data.velocity_smooth.data
         const grade = data.grade_smooth.data
-        // {
-        //     time: { data: second },
-        //     distance: { data: meter },
-        //     cadence: { data: ppm },
-        //     heartrate: { data: bpm },
-        //     altitude: { data: elevation },
-        //     velocity_smooth: { data: velocity },
-        //     grade_smooth: { data: grade },
-        //     temp: { data: deg }
-        // }
+        const start_date = seconds.map(() => date)
         const res = [
-            deg,
+            start_date,
             seconds,
             meters,
             ppm,
             bpm,
             elevation,
             velocity,
-            grade
+            grade,
+            deg
         ]
         return res.reduce(transpose, [])
     } catch (error) {
@@ -153,32 +177,31 @@ async function getStream(activittyID, userToken) {
 async function streamActivities() {
     const access = await getUserValidToken(18933919)
     const acts = await mongo.getCollection("users_activity")
-    const thisActs = await acts.find({ "athlete.id": 18933919, "start_date": { "$gte": "2021-09-01T00:00:00Z" } }).project({ "id": 1, "_id": 0 }).toArray()
-    const ids = thisActs.map(e => e.id)
-    return await Promise.all(ids.map(id => getStream(id, access)))
+    const thisActs = await acts.find({ "athlete.id": 18933919, "start_date": { "$gte": "2021-06-01T00:00:00Z" } }).project({ "start_date": 1, "id": 1, "_id": 0 }).toArray()
+    const ids = thisActs.map(e => [e.start_date, e.id])
+    return await Promise.all(ids.map(el => getStream(el[1], access, el[0])))
 }
 
-const stream = await streamActivities()
+// const stream = await streamActivities()
 
-stream.forEach((run, i) => {
-    run.forEach(async second => {
-        second.unshift(i)
-        const s = second.toString() + '\n'
-        await writeFile('../data/stream.csv', s, { flag: "a" })
-    })
-})
-await mongo.closeConnexion()
+// stream.forEach(run => {
+//     run.forEach(async second => {
+//         const s = second.toString() + '\n'
+//         await writeFile('../data/my_stream.csv', s, { flag: "a" })
+//     })
+// })
+// await mongo.closeConnexion()
 
-const summary = [
-    { sum: 11640, mean: 13.92, std2: 6.49, std: 2.55 },
-    { sum: 1138604, mean: 1361.97, std2: 616193.54, std: 784.98 },
-    { sum: 4568335.6, mean: 5464.52, std2: 10391603.29, std: 3223.6 },
-    { sum: 75093, mean: 89.82, std2: 48.82, std: 6.99 },
-    { sum: 131518, mean: 157.32, std2: 274.2, std: 16.56 },
-    { sum: 11950, mean: 14.29, std2: 226.83, std: 15.06 },
-    { sum: 3371.09, mean: 4.03, std2: 0.62, std: 0.79 },
-    { sum: 215, mean: 0.26, std2: 8.33, std: 2.89 }
-]
+// const summary = [
+//     { sum: 11640, mean: 13.92, std2: 6.49, std: 2.55 },
+//     { sum: 1138604, mean: 1361.97, std2: 616193.54, std: 784.98 },
+//     { sum: 4568335.6, mean: 5464.52, std2: 10391603.29, std: 3223.6 },
+//     { sum: 75093, mean: 89.82, std2: 48.82, std: 6.99 },
+//     { sum: 131518, mean: 157.32, std2: 274.2, std: 16.56 },
+//     { sum: 11950, mean: 14.29, std2: 226.83, std: 15.06 },
+//     { sum: 3371.09, mean: 4.03, std2: 0.62, std: 0.79 },
+//     { sum: 215, mean: 0.26, std2: 8.33, std: 2.89 }
+// ]
 
 // const stream = await streamActivities(18933919, 6269956413)
 // const matrix = stream.reduce(transpose, [])

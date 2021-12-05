@@ -1,0 +1,62 @@
+<a href="athlete?user_id={{user}}">Back to calendar</a>
+<p>Pace(m/s) / seconds:</p>
+<div id="graph">
+    <svg></svg>
+</div>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="/public/graph.js"></script>
+<script>
+    const second = "{{activity.sc}}".split(",").map(i => Number(i))
+    const meter = "{{activity.mt}}".split(",").map(i => Number(i))
+    const ppm = "{{activity.pm}}".split(",").map(i => Number(i))
+    const bpm = "{{activity.bm}}".split(",").map(i => Number(i))
+    const elevation = "{{activity.el}}".split(",").map(i => Number(i))
+    const pace = "{{activity.vy}}".split(",").map(i => Number(i))
+    const grade = "{{activity.gr}}".split(",").map(i => Number(i))
+    const temp = "{{activity.dg}}".split(",").map(i => Number(i))
+
+    const data = pace.map((e, i) => [second[i], e])
+
+    const w = 500, h = 300, margin = 30
+
+    const scaleX = d3.scaleLinear()
+        .domain([0, d3.max(data.map(e => e[0]))])
+        .range([0, w])
+
+    const scaleY = d3.scaleLinear()
+        .domain([0, d3.max(data.map(e => e[1]))])
+        .range([h, 0])
+
+    const colorScale = d3.scaleOrdinal(d3.schemeCategory10)
+        .domain([0, data.length])
+
+    const line = d3.line()
+        .x(d => scaleX(d[0]))
+        .y(d => scaleY(d[1]))
+
+    const xAxis = d3.axisBottom(scaleX)
+    const yAxis = d3.axisLeft(scaleY)
+
+    const svg = d3.select("svg")
+        .attr("height", h)
+        .attr("width", w)
+
+    d3.select("svg").append('g')
+        .selectAll("dot")
+        .data(data)
+        .enter()
+        .append("circle")
+        .attr("cx", d => scaleX(d[0]))
+        .attr("cy", d => scaleY(d[1]))
+        .attr("r", 2)
+        .attr("transform", "translate(" + margin + "," + 0 + ")")
+        .style("fill", "#CC0000")
+
+    const axes = svg.append("g").attr("class", "axes")
+
+    axes.append("g").call(xAxis)
+        .attr("transform", `translate(${[margin, h - margin]})`)
+
+    axes.append("g").call(yAxis)
+        .attr("transform", `translate(${[margin, -margin]})`)
+</script>
