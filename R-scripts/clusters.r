@@ -19,6 +19,6 @@ print(coude)
 
 km <- kmeans(sc_df, 5, nstart = 10)
 print(km)
-k <- fviz_cluster(km, data = sc_df)
+k <- fviz_cluster(km, data = sc_df, geom = "point")
 # plot(df, col = km$centers)
 print(k)

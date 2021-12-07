@@ -107,8 +107,9 @@ export async function updateAcitivities() {
     const ids = await getIds
     return ids.forEach(id => getUserActivities(id, sevenDaysAgo))
 }
-// await updateAcitivities()
+await updateAcitivities()
 
+// Function for display stream graph on the users page 
 export async function getActivityStream(userID, activityID) {
     const access = await getUserValidToken(userID)
     try {
@@ -141,7 +142,9 @@ export async function getActivityStream(userID, activityID) {
     }
 }
 
-async function getStream(activittyID, userToken, date) {
+// Function use to create .csv in data folder, scrap data and store in collection users_stream
+async function getStream(userID, activittyID, date) {
+    const userToken = await getUserValidToken(userID)
     try {
         const { data } = await axios({
             method: 'GET',
@@ -174,8 +177,8 @@ async function getStream(activittyID, userToken, date) {
     }
 }
 
+// Get the Date and the Activity ID before calling getStream()
 async function streamActivities() {
-    const access = await getUserValidToken(18933919)
     const acts = await mongo.getCollection("users_activity")
     const thisActs = await acts.find({ "athlete.id": 18933919, "start_date": { "$gte": "2021-06-01T00:00:00Z" } }).project({ "start_date": 1, "id": 1, "_id": 0 }).toArray()
     const ids = thisActs.map(e => [e.start_date, e.id])
