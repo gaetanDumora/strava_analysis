@@ -24,9 +24,9 @@ df$date <- factor(df$date)
 # end <- c(year(max_date), month(max_date), day(max_date))
 
 run_test = df %>% filter(date == "2021-06-09")
-lag       <- 10
+lag       <- 30
 threshold <- 5
-influence <- 0
+influence <- 0.3
 result <- ThresholdingAlgo(run_test[,"velocity_smooth"], lag, threshold, influence)
 # Plot result
 par(mfrow = c(2,1),oma = c(2,2,0,0) + 0.1,mar = c(0,0,2,1) + 0.2)

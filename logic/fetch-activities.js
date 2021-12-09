@@ -107,7 +107,7 @@ export async function updateAcitivities() {
     const ids = await getIds
     return ids.forEach(id => getUserActivities(id, sevenDaysAgo))
 }
-await updateAcitivities()
+// await updateAcitivities()
 
 // Function for display stream graph on the users page 
 export async function getActivityStream(userID, activityID) {
@@ -122,7 +122,7 @@ export async function getActivityStream(userID, activityID) {
         const seconds = data.time.data
         const meters = data.distance.data
         const ppm = data.cadence.data
-        const bpm = data.cadence.data || seconds.map(() => 0)
+        const bpm = data.heartrate.data || seconds.map(() => 0)
         const elevation = data.altitude.data || seconds.map(() => 0)
         const velocity = data.velocity_smooth.data
         const grade = data.grade_smooth.data
@@ -143,56 +143,77 @@ export async function getActivityStream(userID, activityID) {
 }
 
 // Function use to create .csv in data folder, scrap data and store in collection users_stream
-async function getStream(userID, activittyID, date) {
-    const userToken = await getUserValidToken(userID)
+async function getStream(token, activittyID, date) {
     try {
-        const { data } = await axios({
+        const req = await axios({
             method: 'GET',
             url: `https://www.strava.com/api/${VERSION}/activities/${activittyID}/streams?keys=time,distance,altitude,velocity_smooth,heartrate,cadence,watts,temp,moving,grade_smooth&key_by_type=true`,
-            headers: { Authorization: `Bearer ${userToken}` }
+            headers: { Authorization: `Bearer ${token}` }
         })
-        const deg = data.temp.data
-        const seconds = data.time.data
-        const meters = data.distance.data
-        const ppm = data.cadence.data
-        const bpm = data.cadence.data || seconds.map(() => 0)
-        const elevation = data.altitude.data || seconds.map(() => 0)
-        const velocity = data.velocity_smooth.data
-        const grade = data.grade_smooth.data
-        const start_date = seconds.map(() => date)
-        const res = [
-            start_date,
-            seconds,
-            meters,
-            ppm,
-            bpm,
-            elevation,
-            velocity,
-            grade,
-            deg
-        ]
-        return res.reduce(transpose, [])
+        if (req.data && req.data.heartrate) {
+            const deg = req.data.temp.data
+            const seconds = req.data.time.data
+            const meters = req.data.distance.data
+            const ppm = req.data.cadence.data
+            const bpm = req.data.heartrate.data || seconds.map(() => 0)
+            const elevation = req.data.altitude.data || seconds.map(() => 0)
+            const velocity = req.data.velocity_smooth.data
+            const grade = req.data.grade_smooth.data
+            const start_date = seconds.map(() => date)
+            return [
+                start_date,
+                seconds,
+                meters,
+                ppm,
+                bpm,
+                elevation,
+                velocity,
+                grade,
+                deg
+            ]
+            .reduce(transpose, [])
+            .forEach(async line => {
+                const s = line.toString() + '\n'
+                await writeFile('../data/my_stream_2021.csv', s, { flag: "a" })
+            })
+        }
+        // await mongo.upsert(
+        //     'users_stream',
+        //     {
+        //         "user_id": userID,
+        //         "activity_id": activittyID,
+        //         "start_date": start_date
+        //     },
+        //     {
+        //         "user_id": userID,
+        //         "activity_id": activittyID,
+        //         "start_date": start_date,
+        //         "temp": deg,
+        //         "time": seconds,
+        //         "distance": meters,
+        //         "cadence": ppm,
+        //         "heartrate": bpm,
+        //         "altitude": elevation,
+        //         "pace": velocity,
+        //         "adjusted_pace": grade
+        //     }
+        // )
+
     } catch (error) {
         console.error(error)
     }
 }
 
 // Get the Date and the Activity ID before calling getStream()
-async function streamActivities() {
+async function streamActivities(userID) {
     const acts = await mongo.getCollection("users_activity")
-    const thisActs = await acts.find({ "athlete.id": 18933919, "start_date": { "$gte": "2021-06-01T00:00:00Z" } }).project({ "start_date": 1, "id": 1, "_id": 0 }).toArray()
-    const ids = thisActs.map(e => [e.start_date, e.id])
-    return await Promise.all(ids.map(el => getStream(el[1], access, el[0])))
+    const userToken = await getUserValidToken(userID)
+    const userActIDs = await acts.find({ "athlete.id": userID, "start_date": { "$gte": "2020-12-12T00:00:00Z" } }).project({ "start_date": 1, "id": 1, "_id": 0 }).toArray()
+    const ids = userActIDs.map(e => [e.start_date, e.id])
+    return await Promise.all(ids.map(el => getStream(userToken, el[1], el[0])))
 }
 
-// const stream = await streamActivities()
-
-// stream.forEach(run => {
-//     run.forEach(async second => {
-//         const s = second.toString() + '\n'
-//         await writeFile('../data/my_stream.csv', s, { flag: "a" })
-//     })
-// })
+// await streamActivities(18933919)
 // await mongo.closeConnexion()
 
 // const summary = [

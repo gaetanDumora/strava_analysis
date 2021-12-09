@@ -1,4 +1,5 @@
 ThresholdingAlgo <- function(y, lag, threshold, influence) {
+    
     signals <- rep(0, length(y))
     filteredY <- y[0:lag]
     avgFilter <- NULL
